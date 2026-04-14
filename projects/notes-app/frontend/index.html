@@ -1,0 +1,74 @@
+<html>
+    <head>
+        <title>Notes App</title>
+        <link
+         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+         rel="stylesheet"/>
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    </head>
+    <body>
+        <div class="d-flex justify-content-between px-5" >
+            <div>
+                Loading...
+            </div>
+            <div>
+                <input type="text" id="userNote">
+                <button onclick="addTodo()" class="btn btn-primary">Create new notes</button>
+            </div>
+        </div>
+        <div id="notes" class="px-5 mt-3">
+            <!-- Notes will be displayed here -->
+        </div>
+        <script>
+            async function addTodo(){
+               const token = localStorage.getItem("token");
+               if(!token) {
+                   window.location = 'http://localhost:3000/signin';
+                   return;
+               }
+               
+               const note = document.getElementById("userNote").value;
+               await axios.post("http://localhost:3000/notes", {
+                   note: note
+               }, {
+                   headers: {
+                       'Authorization': `Bearer ${token}`
+                   }
+               });
+
+               const newNode = document.createElement("div");
+               newNode.innerHTML = note;
+               newNode.setAttribute("class", "border border-2 border-dark p-2");
+               document.getElementById("notes").appendChild(newNode);
+
+               document.getElementById("userNote").value = "";
+               getTodos(); // Refresh the notes list
+            }
+
+            async function getTodos() {
+                const token = localStorage.getItem("token");
+                if(!token) {
+                    window.location = 'http://localhost:3000/signin';
+                    return;
+                }
+                
+                const response = await axios.get("http://localhost:3000/notes", {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const notes = response.data.notes;
+
+                document.getElementById("notes").innerHTML = "";
+
+                for (let i = 0; i < notes.length; i++) {
+                    const noteNote = document.createElement("div");
+                    noteNote.innerHTML = notes[i].note;
+                    noteNote.setAttribute("class", "border border-2 border-dark p-2");
+                    document.getElementById("notes").appendChild(noteNote);
+                }
+            }
+            getTodos()
+        </script>
+    </body>
+</html>
